@@ -1,4 +1,6 @@
 import streamlit as st
+from streamlit_local_storage import LocalStorage
+import time
 import pandas as pd
 from espn_api.football import League
 
@@ -9,6 +11,35 @@ LEAGUE_ID = st.secrets["league_id"]
 YEAR = st.secrets["year"]
 ESPN_S2 = st.secrets["espn_s2"]
 SWID = st.secrets["swid"]
+APP_PASSWORD = st.secrets["app_password"]
+
+# =========================
+# Check local storage for password
+# =========================
+local_storage = LocalStorage()
+stored_password = local_storage.getItem("app_password")
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if stored_password == APP_PASSWORD:
+    st.session_state.authenticated = True
+
+# =========================
+# Password form
+# =========================
+if not st.session_state.authenticated:
+    password_input = st.text_input("Enter app password:", type="password")
+    if password_input:
+        if password_input == APP_PASSWORD:
+            st.session_state.authenticated = True
+            local_storage.setItem("app_password", APP_PASSWORD)
+            st.success("Password correct!")
+            time.sleep(1.5)
+            st.rerun()  # reload the app
+        else:
+            st.error("Incorrect password")
+    st.stop()
 
 # =========================
 # Helper Functions
